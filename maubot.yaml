@@ -1,0 +1,7 @@
+maubot: 0.2.0
+id: se.skeg1.tagbot
+version: 0.1.0
+license: MIT
+modules:
+  - tagbot
+main_class: TagBot

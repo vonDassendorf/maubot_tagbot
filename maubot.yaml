@@ -1,6 +1,6 @@
-maubot: 0.2.0
+maubot: 0.1.0
 id: se.skeg1.tagbot
-version: 0.1.0
+version: 0.2.0
 license: MIT
 modules:
   - tagbot

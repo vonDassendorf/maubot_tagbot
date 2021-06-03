@@ -14,11 +14,11 @@ class TagDatabase:
         meta = MetaData()
         meta.bind = db
 
-        self.tag_groups = Table("tag_groups", meta,
+        self.tag_groups = Table("tagbot_tag_groups", meta,
                                 Column("tg_id", Integer, primary_key=True, autoincrement=True),
                                 Column("group_tag", String(10), nullable=False),
                                 Column("room_id", String(255), nullable=False))
-        self.user_memberships = Table("user_memberships", meta,
+        self.user_memberships = Table("tagbot_user_memberships", meta,
                                       Column("um_id", Integer, primary_key=True, autoincrement=True),
                                       Column("tag_group", Integer, ForeignKey("tag_group.tg_id", ondelete="CASCADE")),
                                       Column("user_id", String(255), primary_key=True))

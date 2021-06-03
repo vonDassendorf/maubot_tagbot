@@ -9,7 +9,8 @@ import re
 class TagBot(Plugin):
     db: TagDatabase
 
-    def start(self) -> None:
+    async def start(self) -> None:
+        await super().start()
         self.db = TagDatabase(db=self.database)
 
     @command.new(name="tag", require_subcommand=True, help="Configure tags")

@@ -20,7 +20,7 @@ class TagDatabase:
                                 Column("room_id", String(255), nullable=False))
         self.user_memberships = Table("tagbot_user_memberships", meta,
                                       Column("um_id", Integer, primary_key=True, autoincrement=True),
-                                      Column("tag_group", Integer, ForeignKey("tagbot_tag_group.tg_id", ondelete="CASCADE")),
+                                      Column("tag_group", Integer, ForeignKey("tagbot_tag_groups.tg_id", ondelete="CASCADE")),
                                       Column("user_id", String(255), primary_key=True))
         meta.create_all()
 

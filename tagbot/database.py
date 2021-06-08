@@ -53,9 +53,9 @@ class TagDatabase:
             user_ids.append(row[0])
         yield user_ids
 
-    def insert_new_tag(self, tag: str) -> bool:
+    def insert_new_tag(self, tag: str, room_id: str) -> bool:
         if not self._check_if_tag_exists(tag):
-            self.db.execute(insert(self.tag_groups).values(group_tag=tag))
+            self.db.execute(insert(self.tag_groups).values(group_tag=tag, room_id=room_id))
             return True
         else:
             return False

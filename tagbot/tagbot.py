@@ -11,7 +11,7 @@ class TagBot(Plugin):
 
     async def start(self) -> None:
         await super().start()
-        self.db = TagDatabase(db=self.database)
+        self.db = TagDatabase(db=self.database, bot=self)
 
     @command.new(name="tag", require_subcommand=True, help="Configure tags")
     async def tag(self):
@@ -20,7 +20,7 @@ class TagBot(Plugin):
     @tag.subcommand(name="newtag", help="Create new group. !tag newgroup <tagname>")
     @command.argument("tag", pass_raw=True, required=True)
     async def new_tag(self, evt: MessageEvent, tag: str):
-        if self.db.insert_new_tag(tag):
+        if self.db.insert_new_tag(tag, evt.room_id):
             message = 'New tag has been created'
         else:
             message = 'Tag does already exist'
@@ -28,15 +28,20 @@ class TagBot(Plugin):
         await self.client.send_message(evt.room_id, content)
 
     @tag.subcommand(name="adduser", aliases="addusr", help="Add a user that will be tagged when using specified tag. !tag adduser <tagname> <userid>")
-    @command.argument("tag", pass_raw=True, required=True)
-    @command.argument("user_id", pass_raw=True, required=True)
-    async def add_user_to_tag(self, evt: MessageEvent, tag: str, user_id: str):
-        if self.db.insert_user_membership(tag, user_id):
-            message = f"User {user_id} added to tag group {tag}."
-        else:
-            message = f"User {user_id} already belong to tag group {tag}."
-        content = TextMessageEventContent(msgtype=MessageType.TEXT, body=f"{message}")
-        await self.client.send_message(evt.room_id, content)
+    @command.argument("args", pass_raw=True, required=True)
+    async def add_user_to_tag(self, evt: MessageEvent, args: str):
+        args = args.split(' ')
+        tag = args.pop(0)
+        self.log.info(args)
+        for arg in args:
+            user_id = arg
+            if self.db.insert_user_membership(tag, user_id):
+                message = f"User {user_id} added to tag group {tag}."
+            else:
+                message = f"User {user_id} already belong to tag group {tag}."
+            content = TextMessageEventContent(msgtype=MessageType.TEXT, body=f"{message}")
+            await self.client.send_message(evt.room_id, content)
+        return
 
     async def everyone(self, evt: MessageEvent, message: str = '') -> None:
         members = await self.client.get_members(evt.room_id)

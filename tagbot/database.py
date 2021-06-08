@@ -10,9 +10,8 @@ class TagDatabase:
 
     def __init__(self, db: Engine) -> None:
         self.db = db
-
         meta = MetaData()
-        meta.bind = db
+        meta.bind = self.db
 
         self.tag_groups = Table("tagbot_tag_groups", meta,
                                 Column("tg_id", Integer, primary_key=True, autoincrement=True),
@@ -25,15 +24,15 @@ class TagDatabase:
         meta.create_all()
 
     def _check_if_tag_exists(self, tag: str) -> bool:
-        if len(self.db.execute(select([self.tag_groups.c.group_tag]).where(self.tag_groups.c.group_tag == tag))) > 0:
+        if self.db.execute(select([self.tag_groups.c.group_tag]).where(self.tag_groups.c.group_tag == tag)).first() is not None:
             return True
         else:
             return False
 
     def _check_if_user_is_member(self, tag_id, user_id):
-        if len(self.db.execute(
+        if self.db.execute(
                 select([self.user_memberships.c.um_id]).where(self.user_memberships.c.user_id == user_id).and_(
-                        self.user_memberships.c.tag_group == tag_id))) > 0:
+                        self.user_memberships.c.tag_group == tag_id)).first() is not None:
             return True
         else:
             return False

@@ -5,3 +5,4 @@ license: MIT
 modules:
   - tagbot
 main_class: TagBot
+database: true

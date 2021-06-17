@@ -58,7 +58,7 @@ class TagBot(Plugin):
     @command.passive("^@")
     async def tag_everyone(self, evt: MessageEvent, match: Tuple[str]):
         message = ''
-        rcv_msg = re.split(r"\s", match[0], 2, re.I)
+        rcv_msg = re.split(r"\s", match[0], 1, re.I)
         tag = rcv_msg[0].lower()
         if len(rcv_msg) > 1:
             message = rcv_msg[1]

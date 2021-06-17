@@ -56,10 +56,7 @@ class TagDatabase:
         stmt = select([self.user_memberships.c.user_id]).select_from(join).where(
             and_(self.tag_groups.c.group_tag == tag, self.tag_groups.c.room_id == room_id))
         rows = self.db.execute(stmt)
-        user_ids = []
-        for row in rows:
-            user_ids.append(row[0])
-        yield user_ids
+        return [row[0] for row in rows]
 
     def insert_new_tag(self, tag: str, room_id: str) -> bool:
         if not self._check_if_tag_exists(tag, room_id):
@@ -72,7 +69,6 @@ class TagDatabase:
         res = self.db.execute(select([self.tag_groups.c.tg_id]).where(and_(self.tag_groups.c.group_tag == tag, self.tag_groups.c.room_id == room_id))).first()
         if res is not None:
             tag_id = res[0]
-            self.bot.log.info(tag_id)
             if not self._check_if_user_is_member(tag_id, user_id):
                 self.db.execute(insert(self.user_memberships).values(tag_group=tag_id, user_id=user_id))
                 return True

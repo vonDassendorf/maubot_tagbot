@@ -17,7 +17,7 @@ class TagBot(Plugin):
     async def tag(self):
         pass
 
-    @tag.subcommand(name="newtag", help="Create new group. !tag newgroup <tagname>")
+    @tag.subcommand(name="newtag", help="Create new tag-group. !tag newgroup <tagname>")
     @command.argument("tag", pass_raw=True, required=True)
     async def new_tag(self, evt: MessageEvent, tag: str):
         if self.db.insert_new_tag(tag, evt.room_id):
@@ -42,6 +42,21 @@ class TagBot(Plugin):
         await self.client.send_message(evt.room_id, content)
         return
 
+    @tag.subcommand(name="deluser", aliases="delusr", help="Remove a player from a tag-group !tag deluser <tagname> <userid>")
+    @command.argument("tag", required=True)
+    @command.argument("user_id", required=True)
+    async def del_user_from_tag(self, evt: MessageEvent, tag: str, user_id: str):
+        if self.db.remove_user_from_group_byt_tag(tag, user_id, evt.room_id):
+            message_html = f"User <a href='https://matrix.to/#/{user_id}'>{user_id}</a> removed from tag group {tag} in <a href='https://matrix.to/#/{evt.room_id}'>{evt.room_id}</a>."
+            message = f"User [{user_id}](https://matrix.to/#/{user_id}) removed from tag group {tag} in [{evt.room_id}](https://matrix.to/#/{evt.room_id})."
+        else:
+            message_html = f"User <a href='https://matrix.to/#/{user_id}'>{user_id}</a> is not a member of tag group {tag} in <a href='https://matrix.to/#/{evt.room_id}'>{evt.room_id}</a>."
+            message = f"User [{user_id}](https://matrix.to/#/{user_id}) is not a member of tag group {tag} in [{evt.room_id}](https://matrix.to/#/{evt.room_id})."
+        content = TextMessageEventContent(msgtype=MessageType.TEXT, body=f"{message}", format=Format.HTML,
+                                          formatted_body=f"{message_html}")
+        await self.client.send_message(evt.room_id, content)
+        return
+
     async def everyone(self, evt: MessageEvent, message: str = '') -> None:
         members = await self.client.get_members(evt.room_id)
         botUid = await self.client.whoami()
@@ -52,7 +67,7 @@ class TagBot(Plugin):
                 users_html += f" <a href='https://matrix.to/#/{member.sender}'>{member.sender}</a> "
                 users += f" [{member.sender}](https://matrix.to/#/{member.sender}) "
         content = TextMessageEventContent(msgtype=MessageType.TEXT, body=f"{users} {message}", format=Format.HTML,
-                                          formatted_body=f"{users_html} {message}")
+                                          formatted_body=f"{users_html}<br>{message}")
         await self.client.send_message(evt.room_id, content)
 
     @command.passive("^@")
@@ -62,7 +77,7 @@ class TagBot(Plugin):
         tag = rcv_msg[0].lower()
         if len(rcv_msg) > 1:
             message = rcv_msg[1]
-        if tag == "@everyone":
+        if tag == "@everyone" or tag == "@here":
             await self.everyone(evt, message=message)
             return
         else:
@@ -76,6 +91,6 @@ class TagBot(Plugin):
                         users_html += f" <a href='https://matrix.to/#/{member}'>{member}</a> "
                         users += f" [{member}](https://matrix.to/#/{member}) "
                     content = TextMessageEventContent(msgtype=MessageType.TEXT, body=f"{users} {message}",
-                                                      format=Format.HTML, formatted_body=f"{users_html} {message}")
+                                                      format=Format.HTML, formatted_body=f"{users_html}<br>{message}")
                     await self.client.send_message(evt.room_id, content)
                     return

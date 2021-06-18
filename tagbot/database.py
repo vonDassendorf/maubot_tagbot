@@ -1,5 +1,5 @@
 from sqlalchemy import (Column, String, Integer, Text, ForeignKey, UniqueConstraint, Table, MetaData, select, and_,
-                        insert)
+                        insert, delete)
 from sqlalchemy.engine.base import Engine
 from mautrix.types import UserID, EventID, RoomID
 
@@ -66,11 +66,24 @@ class TagDatabase:
             return False
 
     def insert_user_membership(self, tag: str, user_id: str, room_id: str):
-        res = self.db.execute(select([self.tag_groups.c.tg_id]).where(and_(self.tag_groups.c.group_tag == tag, self.tag_groups.c.room_id == room_id))).first()
+        res = self.db.execute(select([self.tag_groups.c.tg_id]).where(
+            and_(self.tag_groups.c.group_tag == tag, self.tag_groups.c.room_id == room_id))).first()
         if res is not None:
             tag_id = res[0]
             if not self._check_if_user_is_member(tag_id, user_id):
                 self.db.execute(insert(self.user_memberships).values(tag_group=tag_id, user_id=user_id))
+                return True
+            else:
+                return False
+
+    def remove_user_from_group_byt_tag(self, tag: str, user_id: str, room_id: str):
+        res = self.db.execute(select([self.tag_groups.c.tg_id]).where(
+            and_(self.tag_groups.c.group_tag == tag, self.tag_groups.c.room_id == room_id))).first()
+        if res is not None:
+            tag_id = res[0]
+            if self._check_if_user_is_member(tag_id, user_id):
+                self.db.execute(delete(self.user_memberships).where(
+                    and_(self.user_memberships.c.tag_group == tag_id, self.user_memberships.c.user_id == user_id)))
                 return True
             else:
                 return False

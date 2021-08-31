@@ -62,12 +62,14 @@ class TagBot(Plugin):
         botUid = await self.client.whoami()
         users_html = ""
         users = ""
+        added_members = []
         for member in members:
-            if member.sender != botUid:
+            if member.sender != botUid and member.sender not in added_members:
                 users_html += f" <a href='https://matrix.to/#/{member.sender}'>{member.sender}</a> "
                 users += f" [{member.sender}](https://matrix.to/#/{member.sender}) "
-        content = TextMessageEventContent(msgtype=MessageType.TEXT, body=f"{users} {message}", format=Format.HTML,
-                                          formatted_body=f"{users_html}<br>{message}")
+                added_members.append(member.sender)
+        content = TextMessageEventContent(msgtype=MessageType.TEXT, body=f"{users} \n {message}", format=Format.HTML,
+                                          formatted_body=f"{users_html} \n {message}")
         await self.client.send_message(evt.room_id, content)
 
     @command.passive("^@")
@@ -87,10 +89,14 @@ class TagBot(Plugin):
                     members = self.db.get_members_of_group_by_tag(reg_tag, evt.room_id)
                     users = ''
                     users_html = ''
+                    added_users = []
                     for member in members:
-                        users_html += f" <a href='https://matrix.to/#/{member}'>{member}</a> "
-                        users += f" [{member}](https://matrix.to/#/{member}) "
-                    content = TextMessageEventContent(msgtype=MessageType.TEXT, body=f"{users} {message}",
-                                                      format=Format.HTML, formatted_body=f"{users_html}<br>{message}")
+                        if member not in added_users:
+                            users_html += f" <a href='https://matrix.to/#/{member}'>{member}</a> "
+                            users += f" [{member}](https://matrix.to/#/{member}) "
+                            added_users.append(member)
+                    content = TextMessageEventContent(msgtype=MessageType.TEXT, body=f"{users} \n {message}",
+                                                      format=Format.HTML, formatted_body=f"{users_html} \n {message}")
                     await self.client.send_message(evt.room_id, content)
                     return
+
